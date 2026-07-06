@@ -1,0 +1,988 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Сервис страхования
+  description: API для оформления страхования для кредитного продукта
+  termsOfService: https://courses.ru/terms
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    400_Bad_Request: 
+      description: Bad Request Error
+      content:
+        application/json:
+          example: {
+            "error": "invalidParameters",
+            "message": "Request is invalid"}
+          schema:
+            $ref: '#/components/schemas/Error_Response'
+    401_Unauthorized:
+      description: Unauthorized Error
+      content:
+        application/json:
+          example:
+            error: "authorizationFailed"
+            message: "bearer authorization token expired"
+          schema:
+            $ref: '#/components/schemas/Error_Response'
+    403_Forbidden:
+      description: Forbidden Error
+      content:
+        application/json:
+          example: {
+            "error": "insufficientPermissions",
+            "message": "This operation requires access"}
+          schema:
+            $ref: '#/components/schemas/Error_Response'
+    404_Invalid_Access:
+      description: Invalid Access Error
+      content:
+        application/json:
+          example: {
+            "error": "insufficientPermissions",
+            "message": "No credit_products found"}
+          schema:
+            $ref: '#/components/schemas/Error_Response'
+    408_Request_Timeout_Error:
+      description: Request Timeout Error
+      content:
+        application/json:
+          example: {
+            "error": "Request Timeout Error",
+            "message": "Сервер не получил полный запрос в течение ожидаемого времени. Повторите попытку позже."}
+          schema:
+            $ref: '#/components/schemas/Error_Response'
+    409_Conflict:
+      description: Conflict Error
+      content:
+        application/json:
+          example: {
+            "error": "Conflict",
+            "message": "order has already been created"}
+          schema:
+            $ref: '#/components/schemas/Error_Response'
+    423_Locked:
+      description: Locked
+      content:
+        application/json:
+          example: {
+            "error": "Locked",
+            "message": "Ресурс временно заблокирован. Попробуйте через 10 минут."}
+          schema:
+            $ref: '#/components/schemas/Error_Response'
+    429_Too_many_requests:
+      description: Too many requests Error
+      content:
+        application/json:
+          example: {
+            "error": "tooManyRequests",
+            "message": "try again later"}
+          schema:
+            $ref: '#/components/schemas/Error_Response'
+    500_Internal_Server_Error:
+      description: Internal Server Error
+      content:
+        application/json:
+          example: {
+            "error": "Internal Server Error",
+            "message": "Не удалось выполнить операцию. Обратитесь в службу поддержки."}
+    504_Gateway_Timeout_Error:
+      description: Gateway Timeout Error
+      content:
+        application/json:
+          example: {
+            "error": "Gateway Timeout Error",
+            "message": "Внешний банковский API не ответил в течение 5 секунд. Пожалуйста, повторите запрос позже."}
+    400_Bad_Request_Idempotency: 
+      description: Bad Request Error
+      content:
+        application/json:
+          example: {
+            "error": "Bad Request",
+            "message": "Idempotency-Key is missing"}
+
+  schemas:
+    Error_Response:
+      type: object
+      properties:
+        error_code:
+          type: integer
+          description: Код ошибки
+        message:
+          type: string
+          description: Сообщение ошибки
+    credit_product:
+      type: object
+      description: Кредитный продукт
+      required:
+        - credit_product_id
+        - product_name
+        - product_type
+        - credit_product status
+        - loan_amount
+        - current_loan_amount
+        - currency
+        - loan_length
+        - interest_rate
+        - payment_frequency
+        - insure_status
+        - borrow_id
+        - loan_created_at
+      properties:
+        credit_product_id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор кредитного продукта
+          example: 123e4567-e89b-12d3-a456-426614174000
+        product_name:
+          type: string
+          description: Название продукта
+          minLength: 1
+          example: Льготный кредит на квартиру
+        product_type:
+          type: string
+          description: Тип кредитного продукта
+          enum:
+            - Кредит физическим лицам
+            - Кредит юридическим лицам
+            - Межбанковский кредит
+            - Государственный кредит
+          example: Государственный кредит
+        credit_product status:
+          type: string
+          description: Статус продукта
+          enum:
+            - активный
+            - архивный
+          example: активный
+        loan_amount:
+          type: string
+          format: decimal
+          description: Сумма кредита
+          minimum: 1
+          example: 1000000
+        current_loan_amount:
+          type: string
+          format: decimal
+          description: Оставшаяся сумма кредита
+          minimum: 1
+          example: 500000
+        currency:
+          type: string
+          description: Валюта суммы продукта
+          enum:
+            - рубль
+            - евро
+            - доллар
+          example: доллар
+        loan_length:
+          type: integer
+          description: Срок кредита в месяцах
+          minLength: 1
+          example: 2
+        interest_rate:
+          type: string
+          format: decimal
+          description: Годовая ставка в процентах
+          minLength: 1
+          maxLength: 100
+          example: 13.6
+        payment_frequency:
+          type: string
+          description: Частота платежей
+          enum:
+            - ежемесячно
+            - ежегодно
+          example: ежегодно
+        insure_status:
+          type: string
+          description: Статус страхования
+          enum:
+            - нет страховки
+            - есть страховка
+          example: есть страховка
+        borrow_id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор заемщика
+          example: 123e4567-e89b-12d3-a456-426614174000
+        loan_created_at:
+          type: string
+          format: timestamp
+          description: Дата и время оформления кредита
+          example: 23.05.2026 19:59
+        _links:
+            $ref: '#/components/schemas/Links'
+    borrower:
+      type: object
+      description: Заемщик
+      required:
+        - borrow_id
+        - age
+        - monthly_income
+        - employment_status
+        - credit_score
+        - debt_to_income
+      properties:
+        borrow_id:
+          type: string
+          format: uuid
+          description: Идентификатор клиента
+          example: 123e4567-e89b-12d3-a456-426614174000
+        age:
+          type: integer
+          description: Возраст заемщика
+          minLength: 2
+          maxLength: 2
+          example: 32
+        monthly_income:
+          type: number
+          description: Официальный ежемесячный доход
+          minLength: 5
+          example: 250000
+        employment_status:
+          type: string
+          description: Статус занятости
+          enum: 
+            - трудоустроен
+            - самозанятый
+            - безработный
+          example: трудоустроен
+        credit_score:
+          type: integer
+          description: Скоринговый балл
+          minLength: 1
+          maxLength: 3
+          example: 65
+        debt_to_income:
+          type: string
+          format: decimal
+          description: Отношение ежемесячных платежей по всем кредитам к доходу
+          minLength: 1
+          maxLength: 4
+          example: 1.65
+        _links:
+            $ref: '#/components/schemas/Links'
+    insurance_contract:
+      type: object
+      description: Документ о заключении страхования
+      required:
+        - insurance_type
+        - insurance_level
+        - insurance_details
+        - payment
+        - borrow_id
+        - created_at
+      properties:
+        insurance_type:
+          type: string
+          description: тип страхования
+          enum:
+            - инверсивное страхование
+            - страхование с залогом
+          example: страхование с залогом
+        insurance_level:
+          type: string
+          description: уровень страхования
+          enum:
+            - полное страхование
+            - базовое страхование
+          example: базовое страхование
+        insurance_details:
+          type: string
+          description: На что распространяется страхование
+          minLength: 1
+          maxLength: 255
+        payment:
+          type: array
+          items:
+            $ref: '#/components/schemas/payment'
+        borrow_id:
+          type: string
+          format: uuid
+          description: Идентификатор клиента
+          example: 123e4567-e89b-12d3-a456-426614174000
+        created_at:
+          type: string
+          format: timestamp
+          description: дата и время страхования
+          example: 23.05.2026 19:59 
+        updated_at:
+          type: string
+          format: timestamp
+          description: дата и время страхования
+          example: 24.05.2026 19:59 
+        _links:
+            $ref: '#/components/schemas/Links'
+    payment:
+      type: object
+      description: Сведения об оплате страхования
+      required:
+        - payment_id
+        - payment_details
+        - paid_at
+      properties:
+        payment_id:
+          type: string
+          format: uuid
+          description: уникальный идентификатор оплаты
+          example: 123e4567-e89b-12d3-a456-426614174000
+        payment_details:
+          type: string
+          description: реквизиты оплаты (RNN)
+          minLength: 1
+          maxLength: 12
+          example: 123456789012
+        paid_at:
+          type: string
+          format: timestamp
+          description: дата и время оплаты страхования
+          example: 23.05.2026 19:59 
+        _links:
+            $ref: '#/components/schemas/Links'
+    credit_products:
+      type: array
+      description: Список кредитных продуктов
+      items:
+        $ref: '#/components/schemas/credit_product'
+    get_credit_products:
+      $ref: '#/components/schemas/credit_products'
+    insurance_contracts:
+      type: array
+      description: Список страхований кредитных продуктов
+      items:
+        $ref: '#/components/schemas/insurance_contract'
+    get_insurance_contracts:
+      $ref: '#/components/schemas/insurance_contracts'
+    get_insurance_contract:
+      $ref: '#/components/schemas/insurance_contract'
+    get_borrowers:
+      type: array
+      description: Список заемщиков
+      items:
+        $ref: '#/components/schemas/borrower'
+    get_payments:
+      type: array
+      description: Список оплат
+      items:
+        $ref: '#/components/schemas/payment'
+    Link:
+      type: object
+      properties:
+        href:
+          type: string
+          format: uri
+          example: /api/v1/insurance_contracts/123
+        method:
+          type: string
+          enum:
+            - GET
+            - POST
+            - PATCH
+            - DELETE
+        rel:
+          type: string
+          example: self
+    Links:
+      type: object
+      properties:
+        self:
+          $ref: '#/components/schemas/Link'
+        collection:
+          $ref: '#/components/schemas/Link'
+        borrower:
+          $ref: '#/components/schemas/Link'
+        credit_product:
+          $ref: '#/components/schemas/Link'
+        insurance_contract:
+          $ref: '#/components/schemas/Link'
+        payment:
+          $ref: '#/components/schemas/Link'
+        create:
+          $ref: '#/components/schemas/Link'
+        update:
+          $ref: '#/components/schemas/Link'
+        delete:
+          $ref: '#/components/schemas/Link'
+
+paths:
+  /api/v1/credit_products:
+    get:
+      operationId: get_credit_products
+      tags:
+        - Credit Products
+      security:
+        - BearerAuth: []
+      summary: Получение списка кредитных продуктов
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get_credit_products'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+        '504':
+          $ref: '#/components/responses/504_Gateway_Timeout_Error'
+          
+  /api/v1/credit_products/{credit_product_id}:
+    get:
+      operationId: get_credit_product
+      tags:
+        - Credit Products
+      security:
+        - BearerAuth: []
+      summary: Просмотр кредитного продукта
+      parameters:
+        - name: credit_product_id
+          in: path
+          required: true
+          description: Уникальный идентификатор кредитного продукта
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/credit_product'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+        '504':
+          $ref: '#/components/responses/504_Gateway_Timeout_Error'
+      
+  /api/v1/insurance_contracts:
+    get:
+      operationId: get_insurance_contracts
+      tags:
+        - Insurance Contracts
+      security:
+        - BearerAuth: []
+      summary: Получение списка кредитных продуктов
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get_insurance_contracts'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+    
+    post:
+      operationId: create_insurance_contract
+      tags:
+        - Insurance Contracts
+      security:
+        - BearerAuth: []
+      summary: Оформить страхование
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Ключ идемпотентности
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/insurance_contract'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request_Idempotency'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '409':
+          $ref: '#/components/responses/409_Conflict'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+
+    patch:
+      operationId: update_insurance_contract
+      tags:
+        - Insurance Contracts
+      security:
+        - BearerAuth: []
+      summary: Изменить данные страхования
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Ключ идемпотентности
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/insurance_contract'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request_Idempotency'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '409':
+          $ref: '#/components/responses/409_Conflict'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error' 
+
+    delete:
+      operationId: delete_insuranceContract
+      tags:
+        - Insurance Contracts
+      security:
+        - BearerAuth: []
+      summary: Отменить страхование
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Ключ идемпотентности
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/400_Bad_Request_Idempotency'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '409':
+          $ref: '#/components/responses/409_Conflict'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'        
+
+  /api/v1/insurance_contracts/{contract_id}:
+    get:
+      operationId: get_insurance_contract
+      tags:
+        - Insurance Contracts
+      security:
+        - BearerAuth: []
+      summary: Просмотр страхования
+      parameters:
+        - name: credit_product_id
+          in: path
+          required: true
+          description: Уникальный идентификатор кредитного продукта
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/insurance_contract'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error' 
+  
+  /api/v1/borrowers:
+    get:
+      operationId: get_borrowers
+      tags:
+        - Borrowers Info
+      security:
+        - BearerAuth: []
+      summary: Просмотр заемщиков
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get_borrowers'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+    
+    post:
+      operationId: post_borrower
+      tags:
+        - Borrower Creation
+      security:
+        - BearerAuth: []
+      summary: Создать аккаунт заемщика
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Ключ идемпотентности
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/borrower'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request_Idempotency'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '409':
+          $ref: '#/components/responses/409_Conflict'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+  
+  /api/v1/borrowers/{borrow_id}:
+    get:
+      operationId: get_borrower
+      tags:
+        - Borrowers Info
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: borrow_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      summary: Просмотр заемщика
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/borrower'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+  
+    patch:
+      operationId: patch_borrower
+      tags:
+        - Borrower Change
+      security:
+        - BearerAuth: []
+      summary: Изменить данные заемщика
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Ключ идемпотентности
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/borrower'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request_Idempotency'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '409':
+          $ref: '#/components/responses/409_Conflict'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error' 
+    
+    delete:
+      operationId: delete_borrower
+      tags:
+        - Borrower Removal
+      security:
+        - BearerAuth: []
+      summary: Удалить аккаунт заемщика
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Ключ идемпотентности
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/400_Bad_Request_Idempotency'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '409':
+          $ref: '#/components/responses/409_Conflict'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error' 
+  
+  /api/v1/payments:
+    post:
+      operationId: post_payment
+      tags:
+        - Insurance Payment
+      security:
+        - BearerAuth: []
+      summary: Оформить страхование
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Ключ идемпотентности
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/payment'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request_Idempotency'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '409':
+          $ref: '#/components/responses/409_Conflict'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+        '504':
+          $ref: '#/components/responses/504_Gateway_Timeout_Error'       
+    
+    get:
+      operationId: get_payments
+      tags:
+        - Payment Info
+      security:
+        - BearerAuth: []
+      summary: Просмотр оплат страхования
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get_payments'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+  
+  /api/v1/payments/{payment_id}:
+    get:
+      operationId: get_payment
+      tags:
+        - Payment Info
+      security:
+        - BearerAuth: []
+      parameters:
+      - name: payment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      summary: Просмотр оплаты страхования
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/payment'
+        '400':
+          $ref: '#/components/responses/400_Bad_Request'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '423':
+          $ref: '#/components/responses/423_Locked'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'  
