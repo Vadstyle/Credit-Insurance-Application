@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Кредитный продукт",
+  "description": "Схема для представления кредитного продукта (ответ GET /api/v1/credit_products/{credit_product_id})",
+  "type": "object",
+  "required": [
+    "credit_product_id",
+    "product_name",
+    "product_type",
+    "credit_product_status",
+    "loan_amount",
+    "current_loan_amount",
+    "currency",
+    "loan_length",
+    "interest_rate",
+    "payment_frequency",
+    "insure_status",
+    "borrow_id",
+    "loan_created_at",
+    "_links"
+  ],
+  "properties": {
+    "credit_product_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Уникальный идентификатор кредитного продукта"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Название продукта",
+      "minLength": 1
+    },
+    "product_type": {
+      "type": "string",
+      "description": "Тип кредитного продукта",
+      "enum": [
+        "Кредит физическим лицам",
+        "Кредит юридическим лицам",
+        "Межбанковский кредит",
+        "Государственный кредит"
+      ]
+    },
+    "credit_product_status": {
+      "type": "string",
+      "description": "Статус продукта",
+      "enum": [
+        "активный",
+        "архивный"
+      ]
+    },
+    "loan_amount": {
+      "type": "number",
+      "multipleOf": 0.01,
+      "description": "Сумма кредита",
+      "minimum": 1
+    },
+    "current_loan_amount": {
+      "type": "number",
+      "multipleOf": 0.01,
+      "description": "Оставшаяся сумма кредита",
+      "minimum": 1
+    },
+    "currency": {
+      "type": "string",
+      "description": "Валюта суммы продукта",
+      "enum": [
+        "рубль",
+        "евро",
+        "доллар"
+      ]
+    },
+    "loan_length": {
+      "type": "integer",
+      "description": "Срок кредита в месяцах",
+      "minimum": 1
+    },
+    "interest_rate": {
+      "type": "number",
+      "multipleOf": 0.01,
+      "description": "Годовая ставка в процентах",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "payment_frequency": {
+      "type": "string",
+      "description": "Частота платежей",
+      "enum": [
+        "ежемесячно",
+        "ежегодно"
+      ]
+    },
+    "insure_status": {
+      "type": "string",
+      "description": "Статус страхования",
+      "enum": [
+        "нет страховки",
+        "есть страховка"
+      ]
+    },
+    "borrow_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Уникальный идентификатор заемщика"
+    },
+    "loan_created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Дата и время оформления кредита"
+    },
+    "_links": {
+      "type": "object",
+      "required": [
+        "self",
+        "borrower",
+        "credit_product"
+      ],
+      "properties": {
+        "self": {
+          "type": "object",
+          "required": [
+            "href",
+            "method"
+          ],
+          "properties": {
+            "href": {
+              "type": "string",
+              "format": "uri",
+              "example": "/api/v1/credit_products/123e4567-e89b-12d3-a456-426614174000"
+            },
+            "method": {
+              "type": "string",
+              "enum": ["GET"]
+            }
+          }
+        },
+        "borrower": {
+          "type": "object",
+          "required": [
+            "href",
+            "method"
+          ],
+          "properties": {
+            "href": {
+              "type": "string",
+              "format": "uri",
+              "example": "/api/v1/borrowers/123e4567-e89b-12d3-a456-426614174000"
+            },
+            "method": {
+              "type": "string",
+              "enum": ["GET"]
+            }
+          }
+        },
+        "insurance_contracts": {
+          "type": "object",
+          "required": [
+            "href",
+            "method"
+          ],
+          "properties": {
+            "href": {
+              "type": "string",
+              "format": "uri",
+              "example": "/api/v1/insurance_contracts?credit_product_id=123e4567-e89b-12d3-a456-426614174000"
+            },
+            "method": {
+              "type": "string",
+              "enum": ["GET"]
+            }
+          }
+        },
+        "create_insurance": {
+          "type": "object",
+          "required": [
+            "href",
+            "method"
+          ],
+          "properties": {
+            "href": {
+              "type": "string",
+              "format": "uri",
+              "example": "/api/v1/insurance_contracts"
+            },
+            "method": {
+              "type": "string",
+              "enum": ["POST"]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

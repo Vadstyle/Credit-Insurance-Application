@@ -128,7 +128,7 @@ components:
         - credit_product_id
         - product_name
         - product_type
-        - credit_product status
+        - credit_product_status
         - loan_amount
         - current_loan_amount
         - currency
