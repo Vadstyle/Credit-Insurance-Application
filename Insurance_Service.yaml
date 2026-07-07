@@ -218,7 +218,7 @@ components:
           example: 123e4567-e89b-12d3-a456-426614174000
         loan_created_at:
           type: string
-          format: timestamp
+          format: date-time
           description: Дата и время оформления кредита
           example: 23.05.2026 19:59
         _links:
@@ -314,12 +314,12 @@ components:
           example: 123e4567-e89b-12d3-a456-426614174000
         created_at:
           type: string
-          format: timestamp
+          format: date-time
           description: дата и время страхования
           example: 23.05.2026 19:59 
         updated_at:
           type: string
-          format: timestamp
+          format: date-time
           description: дата и время страхования
           example: 24.05.2026 19:59 
         _links:
@@ -345,7 +345,7 @@ components:
           example: 123456789012
         paid_at:
           type: string
-          format: timestamp
+          format: date-time
           description: дата и время оплаты страхования
           example: 23.05.2026 19:59 
         _links:
@@ -414,6 +414,69 @@ components:
           $ref: '#/components/schemas/Link'
         delete:
           $ref: '#/components/schemas/Link'
+    insurance_status:
+      type: object
+      description: Статус оформления страхования
+      required:
+        - contract_id
+        - status
+        - updated_at
+      properties:
+        contract_id:
+          type: string
+          format: uuid
+          description: Идентификатор договора страхования
+          example: 123e4567-e89b-12d3-a456-426614174000
+        status:
+          type: string
+          description: Текущий статус обработки
+          enum:
+            - pending
+            - processing
+            - completed
+            - rejected
+          example: completed
+        message:
+          type: string
+          description: Дополнительная информация
+          example: Договор успешно оформлен
+        updated_at:
+          type: string
+          format: date-time
+          example: 2026-05-23 19:59:00
+    payment_status:
+      type: object
+      description: Статус обработки платежа
+      required:
+        - payment_id
+        - status
+        - updated_at
+      properties:
+        payment_id:
+          type: string
+          format: uuid
+          description: Идентификатор платежа
+          example: 123e4567-e89b-12d3-a456-426614174000
+        status:
+          type: string
+          description: Статус обработки платежа
+          enum:
+            - pending
+            - processing
+            - completed
+            - failed
+          example: processing
+        message:
+          type: string
+          description: Дополнительная информация
+          example: Ожидается подтверждение от банка
+        updated_at:
+          type: string
+          format: date-time
+          description: Время последнего изменения статуса
+          example: 2026-05-23 19:59:00
+        _links:
+          $ref: '#/components/schemas/Links'
 
 paths:
   /api/v1/credit_products:
@@ -499,7 +562,7 @@ paths:
         - Insurance Contracts
       security:
         - BearerAuth: []
-      summary: Получение списка кредитных продуктов
+      summary: Получение списка договоров страхования
       responses:
         '200':
           description: OK
@@ -652,7 +715,7 @@ paths:
         - BearerAuth: []
       summary: Просмотр страхования
       parameters:
-        - name: credit_product_id
+        - name: contract_id
           in: path
           required: true
           description: Уникальный идентификатор кредитного продукта
@@ -683,6 +746,74 @@ paths:
         '500':
           $ref: '#/components/responses/500_Internal_Server_Error' 
   
+  /api/v1/insurance_contracts/{contract_id}/status:
+    get:
+      operationId: wait_insurance_status
+      tags:
+        - Insurance Contracts
+      security:
+        - BearerAuth: []
+      summary: Получение статуса оформления страхования (Long Polling)
+      description: Сервер удерживает соединение до появления нового статуса
+      parameters:
+        - name: contract_id
+          in: path
+          required: true
+          description: Идентификатор договора страхования
+          schema:
+            type: string
+            format: uuid
+        - name: timeout
+          in: query
+          required: false
+          description: Максимальное время ожидания в секундах
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 30
+        - name: lastStatus
+          in: query
+          required: false
+          description: Последний известный клиенту статус
+          schema:
+            type: string
+            enum:
+              - pending
+              - processing
+              - completed
+              - rejected
+      responses:
+        '200':
+          description: Статус изменился
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/insurance_status'
+
+        '204':
+          description: За время ожидания изменений не произошло
+
+        '400':
+          $ref: '#/components/responses/400_Bad_Request'
+
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+
   /api/v1/borrowers:
     get:
       operationId: get_borrowers
@@ -986,3 +1117,65 @@ paths:
           $ref: '#/components/responses/429_Too_many_requests'
         '500':
           $ref: '#/components/responses/500_Internal_Server_Error'  
+    
+  /api/v1/payments/{payment_id}/status:
+    get:
+      operationId: wait_payment_status
+      tags:
+        - Payment Info
+      security:
+        - BearerAuth: []
+      summary: Получение статуса оплаты (Long Polling)
+      description: Сервер удерживает HTTP-соединение до появления нового статуса платежа либо до истечения времени ожидания 
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          description: Идентификатор платежа
+          schema:
+            type: string
+            format: uuid
+        - name: timeout
+          in: query
+          required: false
+          description: Максимальное время ожидания в секундах
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 30
+        - name: last_status
+          in: query
+          required: false
+          description: Последний известный клиенту статус
+          schema:
+            type: string
+            enum:
+              - pending
+              - processing
+              - completed
+              - failed
+      responses:
+        '200':
+          description: Статус платежа изменился
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/payment_status'
+        '204':
+          description: За время ожидания статус не изменился
+        '400':
+          $ref: '#/components/responses/400_Bad_Request'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized'
+        '403':
+          $ref: '#/components/responses/403_Forbidden'
+        '404':
+          $ref: '#/components/responses/404_Invalid_Access'
+        '408':
+          $ref: '#/components/responses/408_Request_Timeout_Error'
+        '429':
+          $ref: '#/components/responses/429_Too_many_requests'
+        '500':
+          $ref: '#/components/responses/500_Internal_Server_Error'
+        '504':
+          $ref: '#/components/responses/504_Gateway_Timeout_Error'

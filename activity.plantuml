@@ -1,116 +1,156 @@
-@startuml
+@startuml activity
 skinparam defaultTextAlignment center
-title Процесс создания страховки для кредитного продукта (инвертированные условия)
+skinparam swimlaneWidth 270
+skinparam wrapWidth 270
+title Процесс создания страховки для кредитного продукта
 
-|API Gateway|
+|Frontend|
 start
-:Получить запрос от пользователя;
-
-:Проверить работоспособность сервиса страхования;
-|Insurance Service|
-:Передача статуса доступности;
+:POST /api/v1/insurances;
 |API Gateway|
-if (Сервис страхования НЕ доступен?) then (да)
-  :Сформировать ответ ошибки 500;
-  stop
-endif
-
-:Проверить работоспособность сервиса оплаты;
-|Payment Service|
-:Передача статуса доступности;
-|API Gateway|
-if (Сервис оплаты НЕ доступен?) then (да)
-  :Сформировать ответ ошибки 500;
-  stop
-endif
-
-:Проверить работоспособность внешнего банковского API;
-|BankAPI|
-:Проверить работоспособность;
-|API Gateway|
-if (Банковское API НЕ доступно?) then (да)
-  :Сформировать ответ ошибки 500;
-  stop
-endif
-
-:Отправить запрос на создание страховки в сервис страхования;
-
-|Insurance Service|
-:Проверить идемпотентность запроса;
-note right: Потребление события из Kafka\n(проверка, не обрабатывался ли уже этот запрос)
-|Kafka|
-:Событие идемпотентности;
-|Insurance Service|
-if (Идемпотентность НЕ подтверждена?) then (да)
-  :Сформировать ошибку 409 (конфликт);
+:GET /health;
+note right: проверка доступности сервисов;
+if (Сервис страхования и сервис оплаты и Bank API недоступны?) then (да)
   |API Gateway|
-  :Передать ошибку пользователю;
+  :HTTP 429 - Сервис недоступен;
+  |Frontend|
+  :Показать ошибку пользователю;
   stop
 endif
-
-:Проверить авторизацию пользователя;
-note right: Потребление события из Kafka\n(валидация JWT-токена)
+|API Gateway|
+:POST /api/v1/insurances;
+|Insurance Service|
+:GET /api/v1/requests/{request_id};
+|Kafka|
+:Передача данных о наличии \nсобытия создания страхования;
+|Insurance Service|
+if (Идемпотентность не подтверждена?) then (да)
+  |API Gateway|
+  :HTTP 409 (конфликт);
+  |Frontend|
+  :Показать ошибку пользователю;
+  stop
+endif
+|Insurance Service|
+:GET /api/v1/authorization_events/{event_id};
 |Kafka|
 :Событие авторизации;
 |Insurance Service|
-if (Пользователь НЕ авторизован?) then (да)
-  :Сформировать ошибку 401;
+if (Пользователь не авторизован?) then (да)
   |API Gateway|
-  :Передать ошибку пользователю;
+  :HTTP 401;
+  |Frontend|
+  :Показать ошибку пользователю;
   stop
 endif
-
-:Проверить права пользователя;
-note right: Чтение из ReadOnly Database\n(копия оригинальной БД для чтения)
-|ReadOnly Database|
+|Insurance Service|
+:GET /api/v1/users/{user_id};
+|Database|
 :Проверка прав пользователя;
 |Insurance Service|
-if (Права ОТСУТСТВУЮТ?) then (да)
-  :Сформировать ошибку 403;
+if (Права отсутствуют?) then (да)
   |API Gateway|
-  :Передать ошибку пользователю;
+  :HTTP 403;
+  |Frontend|
+  :Показать ошибку пользователю;
   stop
 endif
-
-:Проверить существование кредитного продукта;
-note right: Запрос к внешнему BankAPI
+|Insurance Service|
+:GET /bankapi/v1/credit_products/{credit_product_id};
 |BankAPI|
 :Передача информации о существовании;
 |Insurance Service|
-if (Кредитный продукт НЕ существует?) then (да)
-  :Сформировать ошибку 404;
+if (Кредитный продукт не существует?) then (да)
   |API Gateway|
-  :Передать ошибку пользователю;
+  :HTTP 404;
+  |Frontend|
+  :Показать ошибку пользователю;
   stop
 endif
-
-:Создать форму для заполнения;
-:Передать запрос на оплату страховки в сервис оплаты;
-
-|Payment Service|
-:Сформировать оплату;
-:Передать запрос на оплату во внешний платежный сервис;
-|Stripe|
-:Выставить и принять оплату;
-|Payment Service|
-:Передать данные об оплате в сервис страхования;
 |Insurance Service|
-if (Оплата НЕ успешна?) then (да)
-  :Сформировать ошибку оплаты;
-  |API Gateway|
-  :Передать ошибку пользователю;
+:GET /bankapi/v1/loan_products/credit_rate;
+|BankAPI|
+:Вернуть текущую ставку;
+|Insurance Service|
+:Рассчитать новую ставку со страховкой;
+:Сформировать предложение (инверсный вариант);
+|API Gateway|
+:Передать предложение во Frontend;
+|Frontend|
+:Показать пользователю предложение;
+|API Gateway|
+:Передать выбор в Insurance Service;
+|Insurance Service|
+if (Клиент соглашается на инверсный вариант?) then (да)
+  :Создать финальную форму для заполнения;
+  :POST api/v1/payments;
+  |Payment Service|
+  :Выставить и принять оплату;
+  |Insurance Service|
+  :Оформить страхование;
+  :POST /api/v1/insurances;
+  |Database|
+  :Запись данных о страховании;
+  |Insurance Service|
+  fork
+    |API Gateway|
+    :HTTP 201;
+    |Frontend|
+    :Показать результат пользователю;
+  fork again
+    |Insurance Service|
+    :POST /api/v1/requests/{request_id};
+    |Kafka|
+    :Событие опубликовано;
+  end fork
   stop
+else (нет)
+  |Insurance Service|
+  :GET /bankapi/v1/loanagreements/risk-weights;
+  |BankAPI|
+  :Передать коэффициент в Insurance Service;
+  |Insurance Service|
+  :Сформировать набор доступных предложений;
 endif
-
+|Insurance Service|
+:Собрать все варианты в \nединую форму предложения (Offer);
+|API Gateway|
+:Передать предложение во Frontend;
+|Frontend|
+:Показать пользователю варианты\n с ценами и условиями;
+|API Gateway|
+:Передать выбор в Insurance Service;
+|Insurance Service|
+if (Выбран вариант с повышенным риском?) then (да)
+  :POST /api/v1/consents;
+  |API Gateway|
+  :Передать запрос во Frontend;
+  |Frontend|
+  :Показать пользователю запрос на усиленное согласие;
+  |API Gateway|
+  :Передать подтверждение в Insurance Service;
+endif
+|Insurance Service|
+:Создать финальную форму для заполнения\n (на основе выбранного варианта);
+:POST api/v1/payments;
+|Payment Service|
+:Выставить и принять оплату;
+|Insurance Service|
 :Оформить страхование кредитного продукта;
-:Записать данные в базу данных;
-note right: Запись в основную Database (write)
+:POST /api/v1/insurances;
 |Database|
 :Запись данных о страховании;
 |Insurance Service|
-:Сформировать успешный ответ;
-|API Gateway|
-:Передать результат обработки запроса пользователю;
+fork
+  :Сформировать успешный ответ;
+  |API Gateway|
+  :Передать результат во Frontend;
+  |Frontend|
+  :Показать результат пользователю;
+fork again
+  :POST /api/v1/events/{event_id};
+  |Kafka|
+  :Событие опубликовано;
+end fork
 stop
-
 @enduml
