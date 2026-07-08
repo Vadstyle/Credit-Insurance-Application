@@ -4,33 +4,6 @@
   "description": "Схема для представления кредитного продукта (ответ GET /api/v1/credit_products/{credit_product_id})",
   "type": "object",
   "additionalProperties": false,
-
-  "$defs": {
-    "Link": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "href",
-        "method"
-      ],
-      "properties": {
-        "href": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "method": {
-          "type": "string",
-          "enum": [
-            "GET",
-            "POST",
-            "PATCH",
-            "DELETE"
-          ]
-        }
-      }
-    }
-  },
-
   "required": [
     "credit_product_id",
     "product_name",
@@ -46,20 +19,20 @@
     "loan_created_at",
     "_links"
   ],
-"properties": {
-  "credit_product_id": {
+  "properties": {
+    "credit_product_id": {
     "type": "string",
     "format": "uuid",
-    "description": "Уникальный идентификатор кредитного продукта"
-  },
-
+    "description": "Уникальный идентификатор кредитного продукта",
+    "minLength": 36,
+    "maxLength": 36
+    },
   "product_name": {
     "type": "string",
     "description": "Название продукта",
     "minLength": 1,
     "maxLength": 100
-  },
-
+    },
   "product_type": {
     "type": "string",
     "description": "Тип кредитного продукта",
@@ -68,167 +41,73 @@
       "Кредит юридическим лицам",
       "Межбанковский кредит",
       "Государственный кредит"
-    ]
-  },
-
+      ]
+    },
   "credit_product_status": {
     "type": "string",
-    "description": "Статус кредитного продукта",
+    "description": "Статус продукта",
     "enum": [
-      "активный",
-      "архивный"
-    ]
-  },
-
+    "активный",
+    "архивный"
+      ]
+    },
   "loan_amount": {
     "type": "number",
-    "description": "Первоначальная сумма кредита",
+    "description": "Сумма кредита",
     "minimum": 1,
-    "maximum": 1000000000
-  },
-
+    "maximum": 1000000000,
+    "multipleOf": 0.01
+    },
   "current_loan_amount": {
     "type": "number",
     "description": "Оставшаяся сумма кредита",
     "minimum": 0,
-    "maximum": 1000000000
-  },
-
-  "currency": {
-    "type": "string",
-    "description": "Валюта кредита",
-    "enum": [
-      "рубль",
-      "евро",
-      "доллар"
-    ]
-  },
-
+    "maximum": 1000000000,
+    "multipleOf": 0.01
+    },
   "loan_length": {
     "type": "integer",
     "description": "Срок кредита в месяцах",
     "minimum": 1,
     "maximum": 600
-  },
-
+    },
   "interest_rate": {
     "type": "number",
-    "description": "Годовая процентная ставка",
+    "description": "Годовая ставка в процентах",
     "minimum": 0,
-    "maximum": 100
-  },
-
+    "maximum": 100,
+    "multipleOf": 0.01
+    },
   "payment_frequency": {
     "type": "string",
-    "description": "Периодичность платежей",
+    "description": "Частота платежей",
     "enum": [
       "ежемесячно",
       "ежегодно"
-    ]
-  },
-
+      ]
+    },
   "insure_status": {
     "type": "string",
     "description": "Статус страхования",
     "enum": [
       "нет страховки",
       "есть страховка"
-    ]
-  },
-
+      ]
+    },
   "borrow_id": {
     "type": "string",
     "format": "uuid",
-    "description": "Уникальный идентификатор заемщика"
-  },
-
+    "description": "Уникальный идентификатор заемщика",
+    "minLength": 36,
+    "maxLength": 36
+    },
   "loan_created_at": {
     "type": "string",
     "format": "date-time",
     "description": "Дата и время оформления кредита"
-  },
-
-  "_links": {
-    "type": "object",
-    "description": "HATEOAS-ссылки",
-    "additionalProperties": false,
-
-    "required": [
-      "self",
-      "borrower",
-      "insurance_contracts",
-      "create_insurance"
-    ],
-
-    "properties": {
-      "self": {
-        "allOf": [
-          {
-            "$ref": "#/$defs/Link"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "method": {
-                "const": "GET"
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-
-      "borrower": {
-        "allOf": [
-          {
-            "$ref": "#/$defs/Link"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "method": {
-                "const": "GET"
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-
-      "insurance_contracts": {
-        "allOf": [
-          {
-            "$ref": "#/$defs/Link"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "method": {
-                "const": "GET"
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-
-      "create_insurance": {
-        "allOf": [
-          {
-            "$ref": "#/$defs/Link"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "method": {
-                "const": "POST"
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
-        }
-      }
+    },
+    "_links": {
+  "$ref": "#/components/schemas/Links"
     }
   }
 }
