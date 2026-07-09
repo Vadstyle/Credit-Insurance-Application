@@ -1,7 +1,84 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Кредитный продукт",
-  "description": "Схема для представления кредитного продукта (ответ GET /api/v1/credit_products/{credit_product_id})",
+  "title": "Insurance Service",
+  "description": "Схема для представления страхования кредитного продукта",
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/credit_product"
+    },
+    {
+      "$ref": "#/$defs/insurance_contract"
+    },
+    {
+      "$ref": "#/$defs/borrower"
+    },
+    {
+      "$ref": "#/$defs/payment"
+    }
+  ],
+  "$defs": {
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "href"
+      ],
+      "properties": {
+        "href": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "href",
+        "method"
+      ],
+      "properties": {
+        "href": {
+          "type": "string",
+          "format": "uri"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        }
+      }
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "self": {
+          "$ref": "#/$defs/link"
+        },
+        "borrower": {
+          "$ref": "#/$defs/link"
+        },
+        "payments": {
+          "$ref": "#/$defs/link"
+        },
+        "insurance_contract": {
+          "$ref": "#/$defs/link"
+        },
+        "update": {
+          "$ref": "#/$defs/action"
+        },
+        "delete": {
+          "$ref": "#/$defs/action"
+        }
+      }
+    },
     "credit_product": {
       "type": "object",
       "additionalProperties": false,
@@ -17,105 +94,213 @@
         "payment_frequency",
         "insure_status",
         "borrow_id",
-        "loan_created_at"
-      	],
+        "loan_created_at",
+        "_links"
+      ],
       "properties": {
         "credit_product_id": {
           "type": "string",
-          "format": "uuid",
-          "description": "Уникальный идентификатор кредитного продукта",
-          "minLength": 36,
-          "maxLength": 36,
-          "example": "123e4567-e89b-12d3-a456-426614174000"
+          "format": "uuid"
         },
         "product_name": {
-          "type": "string",
-          "description": "Название продукта",
-          "minLength": 1,
-          "maxLength": 100,
-          "example": "Льготный кредит на квартиру"
+          "type": "string"
         },
         "product_type": {
           "type": "string",
-          "description": "Тип кредитного продукта",
           "enum": [
             "Кредит физическим лицам",
             "Кредит юридическим лицам",
             "Межбанковский кредит",
             "Государственный кредит"
-          ],
-          "example": "Государственный кредит"
+          ]
         },
         "credit_product_status": {
           "type": "string",
-          "description": "Статус продукта",
           "enum": [
             "активный",
             "архивный"
-          ],
-          "example": "активный"
+          ]
         },
         "loan_amount": {
-          "type": "string",
-          "format": "decimal",
-          "description": "Сумма кредита",
-          "minimum": 1,
-          "maximum": 1000000000,
-          "example": "1000000"
+          "type": "number"
         },
         "current_loan_amount": {
-          "type": "string",
-          "format": "decimal",
-          "description": "Оставшаяся сумма кредита",
-          "minimum": 0,
-          "maximum": 1000000000
+          "type": "number"
         },
         "loan_length": {
-          "type": "integer",
-          "description": "Срок кредита в месяцах",
-          "minimum": 1,
-          "maximum": 600,
-          "example": 2
+          "type": "integer"
         },
         "interest_rate": {
-          "type": "string",
-          "format": "decimal",
-          "description": "Годовая ставка в процентах",
-          "minimum": 0,
-          "maximum": 100,
-          "example": "13.6"
+          "type": "number"
         },
         "payment_frequency": {
           "type": "string",
-          "description": "Частота платежей",
           "enum": [
             "ежемесячно",
             "ежегодно"
-          ],
-          "example": "ежегодно"
+          ]
         },
         "insure_status": {
           "type": "string",
-          "description": "Статус страхования",
           "enum": [
             "нет страховки",
             "есть страховка"
-          ],
-          "example": "есть страховка"
+          ]
         },
         "borrow_id": {
           "type": "string",
-          "format": "uuid",
-          "description": "Уникальный идентификатор заемщика",
-          "minLength": 36,
-          "maxLength": 36,
-          "example": "123e4567-e89b-12d3-a456-426614174000"
+          "format": "uuid"
         },
         "loan_created_at": {
           "type": "string",
-          "format": "date-time",
-          "description": "Дата и время оформления кредита",
-          "example": "23.05.2026 19:59"
+          "format": "date-time"
+        },
+        "_links": {
+          "$ref": "#/$defs/links"
+        }
+      }
+    },
+    "insurance_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "credit_product_id",
+        "borrow_id",
+        "insurance_type",
+        "insurance_level",
+        "insurance_details",
+        "payment_status",
+        "_links"
+      ],
+      "properties": {
+        "contract_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "credit_product_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "borrow_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "insurance_type": {
+          "type": "string",
+          "enum": [
+            "инвестиционное страхование",
+            "страхование с залогом"
+          ]
+        },
+        "insurance_level": {
+          "type": "string",
+          "enum": [
+            "полное страхование",
+            "базовое страхование"
+          ]
+        },
+        "insurance_details": {
+          "type": "string"
+        },
+        "payment_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "processing",
+            "completed",
+            "failed"
+          ]
+        },
+        "_links": {
+          "$ref": "#/$defs/links"
+        }
+      }
+    },
+    "borrower": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "borrow_id",
+        "age",
+        "monthly_income",
+        "employment_status",
+        "credit_score",
+        "debt_to_income",
+        "_links"
+      ],
+      "properties": {
+        "borrow_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "age": {
+          "type": "integer"
+        },
+        "monthly_income": {
+          "type": "number"
+        },
+        "employment_status": {
+          "type": "string",
+          "enum": [
+            "трудоустроен",
+            "самозанятый",
+            "безработный"
+          ]
+        },
+        "credit_score": {
+          "type": "integer"
+        },
+        "debt_to_income": {
+          "type": "number"
+        },
+        "_links": {
+          "$ref": "#/$defs/links"
+        }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payment_id",
+        "insurance_contract_id",
+        "payment_details",
+        "payment_sum",
+        "currency",
+        "paid_at",
+        "_links"
+      ],
+      "properties": {
+        "payment_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "insurance_contract_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "payment_details": {
+          "type": "string"
+        },
+        "payment_sum": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "рубль",
+            "евро",
+            "доллар"
+          ]
+        },
+        "paid_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "_links": {
+          "$ref": "#/$defs/links"
+        }
       }
     }
   }
