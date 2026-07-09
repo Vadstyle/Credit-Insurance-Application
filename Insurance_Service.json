@@ -2,112 +2,121 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Кредитный продукт",
   "description": "Схема для представления кредитного продукта (ответ GET /api/v1/credit_products/{credit_product_id})",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "credit_product_id",
-    "product_name",
-    "product_type",
-    "credit_product_status",
-    "loan_amount",
-    "current_loan_amount",
-    "loan_length",
-    "interest_rate",
-    "payment_frequency",
-    "insure_status",
-    "borrow_id",
-    "loan_created_at",
-    "_links"
-  ],
-  "properties": {
-    "credit_product_id": {
-    "type": "string",
-    "format": "uuid",
-    "description": "Уникальный идентификатор кредитного продукта",
-    "minLength": 36,
-    "maxLength": 36
-    },
-  "product_name": {
-    "type": "string",
-    "description": "Название продукта",
-    "minLength": 1,
-    "maxLength": 100
-    },
-  "product_type": {
-    "type": "string",
-    "description": "Тип кредитного продукта",
-    "enum": [
-      "Кредит физическим лицам",
-      "Кредит юридическим лицам",
-      "Межбанковский кредит",
-      "Государственный кредит"
-      ]
-    },
-  "credit_product_status": {
-    "type": "string",
-    "description": "Статус продукта",
-    "enum": [
-    "активный",
-    "архивный"
-      ]
-    },
-  "loan_amount": {
-    "type": "number",
-    "description": "Сумма кредита",
-    "minimum": 1,
-    "maximum": 1000000000,
-    "multipleOf": 0.01
-    },
-  "current_loan_amount": {
-    "type": "number",
-    "description": "Оставшаяся сумма кредита",
-    "minimum": 0,
-    "maximum": 1000000000,
-    "multipleOf": 0.01
-    },
-  "loan_length": {
-    "type": "integer",
-    "description": "Срок кредита в месяцах",
-    "minimum": 1,
-    "maximum": 600
-    },
-  "interest_rate": {
-    "type": "number",
-    "description": "Годовая ставка в процентах",
-    "minimum": 0,
-    "maximum": 100,
-    "multipleOf": 0.01
-    },
-  "payment_frequency": {
-    "type": "string",
-    "description": "Частота платежей",
-    "enum": [
-      "ежемесячно",
-      "ежегодно"
-      ]
-    },
-  "insure_status": {
-    "type": "string",
-    "description": "Статус страхования",
-    "enum": [
-      "нет страховки",
-      "есть страховка"
-      ]
-    },
-  "borrow_id": {
-    "type": "string",
-    "format": "uuid",
-    "description": "Уникальный идентификатор заемщика",
-    "minLength": 36,
-    "maxLength": 36
-    },
-  "loan_created_at": {
-    "type": "string",
-    "format": "date-time",
-    "description": "Дата и время оформления кредита"
-    },
-    "_links": {
-  "$ref": "#/components/schemas/Links"
+    "credit_product": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "credit_product_id",
+        "product_name",
+        "product_type",
+        "credit_product_status",
+        "loan_amount",
+        "current_loan_amount",
+        "loan_length",
+        "interest_rate",
+        "payment_frequency",
+        "insure_status",
+        "borrow_id",
+        "loan_created_at"
+      	],
+      "properties": {
+        "credit_product_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Уникальный идентификатор кредитного продукта",
+          "minLength": 36,
+          "maxLength": 36,
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "product_name": {
+          "type": "string",
+          "description": "Название продукта",
+          "minLength": 1,
+          "maxLength": 100,
+          "example": "Льготный кредит на квартиру"
+        },
+        "product_type": {
+          "type": "string",
+          "description": "Тип кредитного продукта",
+          "enum": [
+            "Кредит физическим лицам",
+            "Кредит юридическим лицам",
+            "Межбанковский кредит",
+            "Государственный кредит"
+          ],
+          "example": "Государственный кредит"
+        },
+        "credit_product_status": {
+          "type": "string",
+          "description": "Статус продукта",
+          "enum": [
+            "активный",
+            "архивный"
+          ],
+          "example": "активный"
+        },
+        "loan_amount": {
+          "type": "string",
+          "format": "decimal",
+          "description": "Сумма кредита",
+          "minimum": 1,
+          "maximum": 1000000000,
+          "example": "1000000"
+        },
+        "current_loan_amount": {
+          "type": "string",
+          "format": "decimal",
+          "description": "Оставшаяся сумма кредита",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "loan_length": {
+          "type": "integer",
+          "description": "Срок кредита в месяцах",
+          "minimum": 1,
+          "maximum": 600,
+          "example": 2
+        },
+        "interest_rate": {
+          "type": "string",
+          "format": "decimal",
+          "description": "Годовая ставка в процентах",
+          "minimum": 0,
+          "maximum": 100,
+          "example": "13.6"
+        },
+        "payment_frequency": {
+          "type": "string",
+          "description": "Частота платежей",
+          "enum": [
+            "ежемесячно",
+            "ежегодно"
+          ],
+          "example": "ежегодно"
+        },
+        "insure_status": {
+          "type": "string",
+          "description": "Статус страхования",
+          "enum": [
+            "нет страховки",
+            "есть страховка"
+          ],
+          "example": "есть страховка"
+        },
+        "borrow_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Уникальный идентификатор заемщика",
+          "minLength": 36,
+          "maxLength": 36,
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "loan_created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Дата и время оформления кредита",
+          "example": "23.05.2026 19:59"
+      }
     }
   }
 }
