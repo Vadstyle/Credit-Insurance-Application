@@ -1,81 +1,495 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Insurance Service",
-  "description": "Схема для представления страхования кредитного продукта",
+  "description": "Схема для представления кредитного продукта",
   "type": "object",
-  "oneOf": [
-    {
-      "$ref": "#/$defs/credit_product"
-    },
-    {
-      "$ref": "#/$defs/insurance_contract"
-    },
-    {
-      "$ref": "#/$defs/borrower"
-    },
-    {
-      "$ref": "#/$defs/payment"
-    }
-  ],
   "$defs": {
     "link": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "href"
-      ],
-      "properties": {
-        "href": {
-          "type": "string",
-          "format": "uri"
-        }
-      }
-    },
-    "action": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
         "href",
-        "method"
+        "method",
+        "rel"
       ],
       "properties": {
         "href": {
-          "type": "string",
-          "format": "uri"
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^https://example.com/api/v1/credit_products/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+            },
+            {
+              "type": "string",
+              "pattern": "^https://example.com/api/v1/insurance_contract/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+            },
+            {
+              "type": "string",
+              "pattern": "^https://example.com/api/v1/borrower/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+            },
+            {
+              "type": "string",
+              "pattern": "^https://example.com/api/v1/payment/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+            }
+          ]
         },
         "method": {
           "type": "string",
           "enum": [
             "GET",
             "POST",
-            "PUT",
             "PATCH",
             "DELETE"
+          ]
+        },
+        "rel": {
+          "type": "string"
+        }
+      }
+    },
+    "credit_product_links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "self",
+        "credit_products",
+        "borrower",
+        "insurance_contracts"
+      ],
+      "properties": {
+        "self": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "self"
+                }
+              }
+            }
+          ]
+        },
+        "credit_products": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "credit_products"
+                }
+              }
+            }
+          ]
+        },
+        "borrower": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "borrower"
+                }
+              }
+            }
+          ]
+        },
+        "insurance_contracts": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "insurance_contracts"
+                }
+              }
+            }
           ]
         }
       }
     },
-    "links": {
+    "insurance_contract_links": {
       "type": "object",
       "additionalProperties": false,
+      "required": [
+        "self",
+        "insurance_contracts",
+        "status",
+        "credit_product",
+        "borrower",
+        "payments",
+        "create",
+        "update",
+        "delete"
+      ],
       "properties": {
         "self": {
-          "$ref": "#/$defs/link"
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "self"
+                }
+              }
+            }
+          ]
+        },
+        "insurance_contracts": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "insurance_contracts"
+                }
+              }
+            }
+          ]
+        },
+        "status": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "status"
+                }
+              }
+            }
+          ]
+        },
+        "credit_product": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "credit_product"
+                }
+              }
+            }
+          ]
         },
         "borrower": {
-          "$ref": "#/$defs/link"
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "borrower"
+                }
+              }
+            }
+          ]
         },
         "payments": {
-          "$ref": "#/$defs/link"
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "payments"
+                }
+              }
+            }
+          ]
         },
-        "insurance_contract": {
-          "$ref": "#/$defs/link"
+        "create": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "POST"
+                },
+                "rel": {
+                  "const": "create"
+                }
+              }
+            }
+          ]
         },
         "update": {
-          "$ref": "#/$defs/action"
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "PATCH"
+                },
+                "rel": {
+                  "const": "update"
+                }
+              }
+            }
+          ]
         },
         "delete": {
-          "$ref": "#/$defs/action"
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "DELETE"
+                },
+                "rel": {
+                  "const": "delete"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "borrower_links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "self",
+        "borrowers",
+        "create",
+        "update",
+        "delete"
+      ],
+      "properties": {
+        "self": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "self"
+                }
+              }
+            }
+          ]
+        },
+        "borrowers": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "borrowers"
+                }
+              }
+            }
+          ]
+        },
+        "create": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "POST"
+                },
+                "rel": {
+                  "const": "create"
+                }
+              }
+            }
+          ]
+        },
+        "update": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "PATCH"
+                },
+                "rel": {
+                  "const": "update"
+                }
+              }
+            }
+          ]
+        },
+        "delete": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "DELETE"
+                },
+                "rel": {
+                  "const": "delete"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "payment_links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "self",
+        "payments",
+        "status",
+        "insurance_contract",
+        "create"
+      ],
+      "properties": {
+        "self": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "self"
+                }
+              }
+            }
+          ]
+        },
+        "payments": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "payments"
+                }
+              }
+            }
+          ]
+        },
+        "status": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "status"
+                }
+              }
+            }
+          ]
+        },
+        "insurance_contract": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "GET"
+                },
+                "rel": {
+                  "const": "insurance_contract"
+                }
+              }
+            }
+          ]
+        },
+        "create": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/link"
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "POST"
+                },
+                "rel": {
+                  "const": "create"
+                }
+              }
+            }
+          ]
         }
       }
     },
@@ -94,8 +508,7 @@
         "payment_frequency",
         "insure_status",
         "borrow_id",
-        "loan_created_at",
-        "_links"
+        "loan_created_at"
       ],
       "properties": {
         "credit_product_id": {
@@ -103,7 +516,9 @@
           "format": "uuid"
         },
         "product_name": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
         },
         "product_type": {
           "type": "string",
@@ -122,16 +537,26 @@
           ]
         },
         "loan_amount": {
-          "type": "number"
+          "type": "number",
+          "minimum": 1,
+          "maximum": 1000000000,
+          "multipleOf": 0.01
         },
         "current_loan_amount": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000000,
+          "multipleOf": 0.01
         },
         "loan_length": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 600
         },
         "interest_rate": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
         },
         "payment_frequency": {
           "type": "string",
@@ -156,7 +581,7 @@
           "format": "date-time"
         },
         "_links": {
-          "$ref": "#/$defs/links"
+          "$ref": "#/$defs/credit_product_links"
         }
       }
     },
@@ -201,7 +626,9 @@
           ]
         },
         "insurance_details": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
         },
         "payment_status": {
           "type": "string",
@@ -213,7 +640,7 @@
           ]
         },
         "_links": {
-          "$ref": "#/$defs/links"
+          "$ref": "#/$defs/insurance_contract_links"
         }
       }
     },
@@ -225,8 +652,6 @@
         "age",
         "monthly_income",
         "employment_status",
-        "credit_score",
-        "debt_to_income",
         "_links"
       ],
       "properties": {
@@ -235,10 +660,14 @@
           "format": "uuid"
         },
         "age": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 18,
+          "maximum": 100
         },
         "monthly_income": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000
         },
         "employment_status": {
           "type": "string",
@@ -248,14 +677,8 @@
             "безработный"
           ]
         },
-        "credit_score": {
-          "type": "integer"
-        },
-        "debt_to_income": {
-          "type": "number"
-        },
         "_links": {
-          "$ref": "#/$defs/links"
+          "$ref": "#/$defs/borrower_links"
         }
       }
     },
@@ -281,10 +704,14 @@
           "format": "uuid"
         },
         "payment_details": {
-          "type": "string"
+          "type": "string",
+          "minLength": 12,
+          "maxLength": 12
         },
         "payment_sum": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000
         },
         "currency": {
           "type": "string",
@@ -299,9 +726,23 @@
           "format": "date-time"
         },
         "_links": {
-          "$ref": "#/$defs/links"
+          "$ref": "#/$defs/payment_links"
         }
       }
     }
-  }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/credit_product"
+    },
+    {
+      "$ref": "#/$defs/insurance_contract"
+    },
+    {
+      "$ref": "#/$defs/borrower"
+    },
+    {
+      "$ref": "#/$defs/payment"
+    }
+  ]
 }
