@@ -29,7 +29,7 @@
       "properties": {
         "href": {
           "type": "string",
-          "format": "url"
+          "format": "uri"
         },
         "method": {
           "type": "string",
@@ -41,7 +41,18 @@
           ]
         },
         "rel": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "self",
+            "credit_product",
+            "credit_products",
+            "insurance_contract",
+            "insurance_contracts",
+            "borrower",
+            "borrowers",
+            "payment",
+            "payments"
+          ]
         }
       }
     },
