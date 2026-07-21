@@ -1,40 +1,49 @@
 {
-  "contract_id": "b7e12f44-9d77-4d6d-81f8-4f7d52f45678",
-  "credit_product_id": "8c0f7c32-8d76-4d8b-99a8-5c6d8b2e1234",
   "borrow_id": "550e8400-e29b-41d4-a716-446655440000",
-  "insurance_type": "страхование с залогом",
-  "insurance_level": "полное страхование",
-  "insurance_details": "Страхование жизни заемщика и залогового имущества.",
-  "created_at": "2025-01-16T11:00:00Z",
-  "updated_at": "2025-02-15T09:20:00Z",
-  "insurance_status": {
-    "status": "completed",
-    "message": "Договор страхования активен",
-    "updated_at": "2025-02-15T09:20:00Z"
-  },
-  "payments": [
+  "age": 32,
+  "monthly_income": 250000,
+  "employment_status": "трудоустроен",
+  "credit_score": 82,
+  "debt_to_income": 21.5,
+  "credit_products": [
     {
-      "payment_id": "11111111-2222-3333-4444-555555555555",
-      "payment_details": "987654321098",
-      "payment_sum": 15000,
-      "currency": "рубль",
-      "paid_at": "2025-02-01T10:00:00Z",
-      "payment_status": {
-        "status": "completed",
-        "message": "Первый страховой взнос оплачен",
-        "updated_at": "2025-02-01T10:01:00Z"
-      }
-    },
-    {
-      "payment_id": "66666666-7777-8888-9999-aaaaaaaaaaaa",
-      "payment_details": "123123123123",
-      "payment_sum": 15000,
-      "currency": "рубль",
-      "paid_at": "2025-03-01T10:00:00Z",
-      "payment_status": {
-        "status": "processing",
-        "message": "Платеж находится в обработке",
-        "updated_at": "2025-03-01T10:02:00Z"
+      "credit_product_id": "8c0f7c32-8d76-4d8b-99a8-5c6d8b2e1234",
+      "product_name": "Ипотека для молодых семей",
+      "product_type": "Кредит физическим лицам",
+      "credit_product_status": "активный",
+      "loan_amount": 4500000,
+      "current_loan_amount": 4350000,
+      "loan_length": 240,
+      "interest_rate": 12.5,
+      "payment_frequency": "ежемесячно",
+      "insure_status": "есть страховка",
+      "loan_created_at": "2025-01-15T10:00:00Z",
+      "insurance_contract": {
+        "contract_id": "b7e12f44-9d77-4d6d-81f8-4f7d52f45678",
+        "insurance_type": "страхование с залогом",
+        "insurance_level": "полное страхование",
+        "insurance_details": "Страхование жизни заемщика и залогового имущества.",
+        "created_at": "2025-01-16T11:00:00Z",
+        "updated_at": "2025-02-15T09:20:00Z",
+        "insurance_status": {
+          "status": "completed",
+          "message": "Договор страхования активен",
+          "updated_at": "2025-02-15T09:20:00Z"
+        },
+        "payments": [
+          {
+            "payment_id": "11111111-2222-3333-4444-555555555555",
+            "payment_details": "987654321098",
+            "payment_sum": 15000,
+            "currency": "рубль",
+            "paid_at": "2025-02-01T10:00:00Z",
+            "payment_status": {
+              "status": "completed",
+              "message": "Первый страховой взнос оплачен",
+              "updated_at": "2025-02-01T10:01:00Z"
+            }
+          }
+        ]
       }
     }
   ]
